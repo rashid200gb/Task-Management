@@ -16,14 +16,15 @@ Build an AI-native task management ecosystem where autonomous agents collaborate
 
 These are the values every contributor (human or agent) is expected to uphold.
 
-1. **Production-first mindset.** Every feature is written as if it ships to a real user tomorrow. No "we'll harden it later."
-2. **Cloud-native by default.** The system is designed from the very first commit to run on a Kubernetes cluster. Local development must mirror that target.
-3. **Source of truth is the official docs.** Before writing code against any SDK, framework, or protocol, read its current official documentation. Do not rely on training data, blog posts, or stale memory.
-4. **Lean on the platform, don't reimplement it.** Prefer using a capability through an existing **agent skill** or an **MCP server** over hand-rolling integrations.
-5. **Small, reversible steps.** Ship narrow vertical slices end-to-end. Avoid big-bang refactors and speculative abstractions.
-6. **Honesty over optimism.** Surface unknowns, risks, and failures early. A working "I don't know yet" beats a confident guess.
-7. **Readable beats clever.** Code is read far more than it is written. Choose clarity.
-8. **Security and privacy are non-negotiable.** Treat every input as untrusted and every secret as production-sensitive, even in dev.
+1. **Always verify what you are doing.** Every claim, every change, every "done" must be checked against reality — run the test, read the file, hit the endpoint, query the cluster. Plausible is not the same as correct. If you cannot verify it, say so.
+2. **Production-first mindset.** Every feature is written as if it ships to a real user tomorrow. No "we'll harden it later."
+3. **Cloud-native by default.** The system is designed from the very first commit to run on a Kubernetes cluster. Local development must mirror that target.
+4. **Source of truth is the official docs.** Before writing code against any SDK, framework, or protocol, read its current official documentation. Do not rely on training data, blog posts, or stale memory.
+5. **Lean on the platform, don't reimplement it.** Prefer using a capability through an existing **agent skill** or an **MCP server** over hand-rolling integrations.
+6. **Small, reversible steps.** Ship narrow vertical slices end-to-end. Avoid big-bang refactors and speculative abstractions.
+7. **Honesty over optimism.** Surface unknowns, risks, and failures early. A working "I don't know yet" beats a confident guess.
+8. **Readable beats clever.** Code is read far more than it is written. Choose clarity.
+9. **Security and privacy are non-negotiable.** Treat every input as untrusted and every secret as production-sensitive, even in dev.
 
 ---
 
@@ -124,7 +125,64 @@ The final target is a **Kubernetes cluster**, and the project is structured arou
 
 ---
 
-## 8. Amending This Constitution
+## 8. Agent-Building Discipline
+
+These practices apply when a contributor (human or AI agent) is *building, prompting, or operating* an agent inside this system. Adapted from the Panaversity Agent Factory _Creator Workflow_ guidance.
+
+### 8.1 Plan Before You Execute
+- For any non-trivial change, write the plan first — what you intend to do, why, what could break.
+- Iterate on the plan until it is solid. Do not skip planning to "save time"; rework caused by skipping it costs more.
+- Re-plan immediately when execution goes sideways. Do not push through a flawed plan because you've already started.
+
+### 8.2 Two-Pass Verification
+- For critical work, separate the author and the reviewer. The reviewer reads with fresh eyes — no sunk-cost bias.
+- Reviewer asks: "What would make this fail? What is the author *not* showing me?"
+- Address review feedback before merging.
+
+### 8.3 Build Verification Into the Loop
+- Every agent and every service must have a way to verify its own output: a test command, a smoke endpoint, a metric query, a sample run.
+- "Plausible output" is not "correct output." If there is no way to verify, build one before shipping.
+- Wire verification into hooks and CI so it runs automatically, not "when someone remembers."
+
+### 8.4 Adversarial Self-Review
+Use challenge prompts to break your own work before someone else does:
+- _"Poke holes in this plan."_
+- _"What's the edge case I'm missing?"_
+- _"Prove this conclusion is correct."_
+- _"Knowing what you know now, what would you do differently?"_
+
+### 8.5 Capture Mistakes Immediately
+- When an agent makes the same mistake twice, the rule belongs in the constitution, the relevant skill, or the project notes — not in someone's head.
+- Update documentation **in the same PR** that fixes the mistake. A fix without a captured lesson will recur.
+- Prune stale rules. An over-stuffed constitution gets ignored.
+
+### 8.6 Scope and Context Hygiene
+- One session, one task. Don't pile unrelated work into the same conversation or branch.
+- If you've corrected the same issue twice and it's still wrong, stop. Restart with a clearer brief — don't keep patching.
+- Hand off deep investigations to a focused subagent so the main thread stays clean.
+
+### 8.7 Present Problems, Not Solutions
+- Brief agents (and collaborators) with the *outcome* and the *constraints*, not a prescribed list of steps.
+- Over-specifying the "how" prevents discovery of better approaches.
+- The exception: when there is a hard requirement (security, compliance, API contract), state it explicitly.
+
+### 8.8 Optimize for Total Time, Not Latency
+- A wrong fast answer costs more time than a right slow answer.
+- Prefer thorough planning, careful prompts, and explicit verification — even when they feel slower in the moment. Iteration cost dominates.
+
+### 8.9 Reusable Skills Over One-Offs
+- If you do the same workflow more than twice, turn it into a reusable skill, script, or MCP tool.
+- Project-agnostic skills live where the whole team can find them. Project-specific ones live in the repo.
+- Document the skill so the next person (or agent) can invoke it without rediscovering it.
+
+### 8.10 Safe Autonomy
+- Pre-approve safe, repeatable commands (build, test, lint, type-check) so agents can run them without friction.
+- Do **not** disable safety checks wholesale to "go faster." Boundaries exist because past mistakes were expensive.
+- For destructive or hard-to-reverse actions (force-push, drop table, delete branch), always confirm — even if you're sure.
+
+---
+
+## 9. Amending This Constitution
 
 This document is living. Amend it through a pull request that explains:
 - What is changing.
