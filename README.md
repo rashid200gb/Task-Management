@@ -1,199 +1,95 @@
-# Task Management API — Project 1
+# AI-Native Task Manager
 
-A production-ready **REST API** for task management built with **FastAPI**, **SQLModel**, and **Neon PostgreSQL**. Containerized with a multi-stage Docker build and designed for Kubernetes deployment with full CRUD operations, input validation, filtering, pagination, and a comprehensive test suite.
+An AI-native task management ecosystem where autonomous agents collaborate to handle reminders, appointments, notifications, and productivity workflows — naturally and reliably.
 
----
-
-## Features
-
-- **Full CRUD** — Create, List, Get, full Update (PUT), partial Update (PATCH), Delete
-- **Priority levels** — 1 (low) to 5 (critical) with server-side validation
-- **Filtering** — Filter tasks by completion status (`?completed=true/false`)
-- **Pagination** — `offset` and `limit` query parameters on list endpoint
-- **Dual database** — Neon PostgreSQL in production, SQLite fallback locally
-- **Auto timestamps** — `created_at` and `updated_at` managed by the server
-- **Interactive docs** — Swagger UI at `/docs`, ReDoc at `/redoc`
-- **Health check** — `GET /health` for liveness probes
-- **Docker** — Multi-stage build, non-root user, built-in HEALTHCHECK
-- **Tests** — 25+ tests covering happy paths, edge cases, and validation errors
+> **New here?** Read [`AGENTS.md`](./AGENTS.md) — our project constitution. It explains *how* we work (ethos, principles, workflow) before *what* we build.
 
 ---
 
-## API Endpoints
+## Why This Project
 
-| Method | Endpoint | Description |
+Most task managers make you do the work of being organized — typing forms, setting reminders, juggling calendars. We think a task manager should *understand* you instead. You say _"remind me to call Sara at 8 PM tomorrow"_ and the system handles the rest: parses intent, schedules, notifies, follows up, learns.
+
+Under the hood, that means a small team of focused AI agents — each with a clear job — coordinating through well-defined tools.
+
+---
+
+## What's in This Repo
+
+This repository is a **monorepo** that grows project-by-project toward the full vision. Each project is a self-contained, production-quality slice that ships to a Kubernetes cluster.
+
+| Project | Status | Description |
 |---|---|---|
-| `GET` | `/health` | Health check |
-| `GET` | `/tasks` | List all tasks (filter + paginate) |
-| `POST` | `/tasks` | Create a new task |
-| `GET` | `/tasks/{id}` | Get a single task |
-| `PUT` | `/tasks/{id}` | Full update (all fields required) |
-| `PATCH` | `/tasks/{id}` | Partial update (only changed fields) |
-| `DELETE` | `/tasks/{id}` | Delete a task |
+| [Project 1 — Task API](./docs/project-1.md) | ✅ Shipped | FastAPI + SQLModel + Postgres CRUD service. The system of record for tasks. |
+| Project 2 — Tasks Manager Agent | 🛠️ Next | OpenAI Agents SDK orchestrator that turns natural language into task operations. |
+| Project 3 — Notifications API | 📋 Planned | Multi-channel reminder delivery (email / SMS / push). |
+| Project 4 — Appointment Booking Agent | 📋 Planned | Specialized agent for booking workflows. |
 
-### Query Parameters — `GET /tasks`
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `completed` | `bool` | — | Filter by completion status |
-| `offset` | `int` | `0` | Pagination offset |
-| `limit` | `int` | `100` | Max results (1–500) |
+The roadmap will expand as projects land.
 
 ---
 
-## Task Schema
-
-```json
-{
-  "id": 1,
-  "title": "Write report",
-  "description": "Q1 financials",
-  "completed": false,
-  "priority": 4,
-  "created_at": "2026-03-26T10:00:00Z",
-  "updated_at": "2026-03-26T10:00:00Z"
-}
-```
-
-| Field | Type | Constraints |
-|---|---|---|
-| `title` | string | Required, 1–255 chars |
-| `description` | string | Optional, max 2000 chars |
-| `completed` | bool | Default: `false` |
-| `priority` | int | 1 (low) → 5 (critical), default: `1` |
-
----
-
-## Project Structure
-
-```
-project1/
-├── app/
-│   ├── main.py          # FastAPI app, route handlers, lifespan
-│   ├── models.py        # SQLModel table + request/response schemas
-│   ├── crud.py          # Pure database logic (no HTTP concerns)
-│   ├── database.py      # DB engine, session factory, table init
-│   └── __init__.py
-├── tests/
-│   ├── conftest.py      # In-memory SQLite fixture + TestClient
-│   ├── test_tasks.py    # 25+ CRUD tests (create, read, update, patch, delete)
-│   └── test_health.py   # Health endpoint test
-├── Dockerfile           # Multi-stage build (builder + runtime)
-├── pyproject.toml       # Dependencies, pytest config, build system
-└── .env.example         # DATABASE_URL template
-```
-
----
-
-## Local Setup
-
-### 1. Install dependencies
+## Quick Start (Project 1 — Task API)
 
 ```bash
+# Install dependencies
 pip install -e ".[dev]"
-```
 
-### 2. Configure database
-
-```bash
-cp .env.example .env
-# Edit .env and set your DATABASE_URL
-# Neon: postgresql+psycopg2://user:pass@ep-xxx.us-east-2.aws.neon.tech/taskdb?sslmode=require
-# Local SQLite (no config needed — auto-detected if DATABASE_URL is unset)
-```
-
-### 3. Run the API
-
-```bash
+# Run the API
 uvicorn app.main:app --reload --port 8000
 ```
 
-Open **http://localhost:8000/docs** for the interactive Swagger UI.
+Open **http://localhost:8000/docs** for interactive API docs.
+
+Full setup, schema, Docker, and test details: [`docs/project-1.md`](./docs/project-1.md).
 
 ---
 
-## Running Tests
+## How We Work
 
-```bash
-# Run all tests
-pytest
+A few highlights from [`AGENTS.md`](./AGENTS.md) — read it in full before contributing:
 
-# With coverage report
-pytest --cov=app --cov-report=term-missing
-```
+- **Test-Driven Development.** Failing test first, then code, then refactor.
+- **Cloud-native from day one.** Every service ships as a container, runs on Kubernetes, mirrored locally with kind/k3d.
+- **Official docs are the source of truth.** Read the current SDK/framework docs before writing code against them — never rely on memory.
+- **Prefer agent skills and MCP** over hand-rolled integrations.
+- **Production-first mindset.** No "we'll harden it later." Logs, metrics, traces, and probes are part of the feature, not an afterthought.
 
-Tests run against an **in-memory SQLite database** — no external dependencies needed.
+---
 
-**Test coverage:**
+## Tech Stack (Target)
 
-| Test Class | What it covers |
+| Layer | Technology |
 |---|---|
-| `TestCreateTask` | Minimal, full payload, empty title, priority out of range, missing title |
-| `TestReadTask` | Empty list, list all, filter completed/pending, pagination, get by ID, 404 |
-| `TestUpdateTask` | Full replacement, 404, `updated_at` timestamp advances |
-| `TestPatchTask` | Title only, completed toggle, empty body (no-op), 404 |
-| `TestDeleteTask` | Delete existing, deleted → 404, delete missing, list shrinks |
+| Frontend | Next.js |
+| AI Agent Framework | OpenAI Agents SDK |
+| Tool Protocol | Model Context Protocol (MCP) |
+| Backend APIs | FastAPI |
+| Auth | Better Auth |
+| Database | PostgreSQL (Neon) / SQLite locally |
+| Scheduling | APScheduler / Celery |
+| Containerization | Docker (multi-stage) |
+| Orchestration | Kubernetes (Helm) |
 
 ---
 
-## Docker
+## Contributing
 
-### Build
+1. Read [`AGENTS.md`](./AGENTS.md) — the constitution. Non-negotiable starting point.
+2. Pick (or open) an issue scoped to a single vertical slice.
+3. Branch off `main`, write the failing test, then the code.
+4. Open a pull request. CI must be green; a reviewer signs off.
 
-```bash
-docker build -t task-api:1.0.0 .
-```
-
-### Run
-
-```bash
-docker run -p 8000:8000 \
-  -e DATABASE_URL="postgresql+psycopg2://user:pass@host/taskdb?sslmode=require" \
-  task-api:1.0.0
-```
-
-### Docker design
-
-| Feature | Detail |
-|---|---|
-| Multi-stage build | `builder` installs deps; `runtime` copies only what's needed — minimal image size |
-| Non-root user | Runs as `appuser` (UID 1000) — matches `runAsUser: 1000` in Kubernetes |
-| HEALTHCHECK | Polls `GET /health` every 30s via stdlib `urllib` (no extra tools) |
-| Port | `8000` (uvicorn) |
+Disagreements about the constitution are welcome — amend it through a PR that explains what's changing and why.
 
 ---
 
-## Example Requests
+## License
 
-```bash
-# Create a task
-curl -X POST http://localhost:8000/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Deploy to production", "priority": 5}'
-
-# List pending tasks
-curl "http://localhost:8000/tasks?completed=false"
-
-# Mark a task complete (partial update)
-curl -X PATCH http://localhost:8000/tasks/1 \
-  -H "Content-Type: application/json" \
-  -d '{"completed": true}'
-
-# Delete a task
-curl -X DELETE http://localhost:8000/tasks/1
-```
+TBD.
 
 ---
 
-## Technologies
+## Maintainer
 
-| Technology | Role |
-|---|---|
-| **FastAPI** | Web framework — async, auto-validates with Pydantic |
-| **SQLModel** | ORM layer — combines SQLAlchemy + Pydantic in one model |
-| **Neon PostgreSQL** | Serverless PostgreSQL for production |
-| **SQLite** | Zero-config local/test database |
-| **uvicorn** | ASGI server |
-| **pytest + httpx** | Test framework with FastAPI `TestClient` |
-| **Docker** | Multi-stage containerization |
-| **Python 3.12** | Runtime |
+[@rashid200gb](https://github.com/rashid200gb)
